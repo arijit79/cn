@@ -1,4 +1,6 @@
 use clap::{App, Arg};
+use std::fs::copy;
+use std::path::Path;
 
 fn main() {
     let cli = App::new("cn")
@@ -15,4 +17,20 @@ fn main() {
                     .required(true)
             )
                 .get_matches();
+
+    let source = Path::new(cli.value_of("source").unwrap())
+            .to_owned();
+    let mut dest = Path::new(cli.value_of("dest").unwrap())
+            .to_owned();
+
+    if Path::new(&dest).is_dir() {
+        dest.push(&source.file_name().unwrap().to_str().unwrap());
+    }
+
+    let r = copy(source.to_str().unwrap(), dest.to_str().unwrap());
+
+    match r {
+        Ok(_) => println!("{} -> {}", source.display(), dest.display()),
+        Err(e) => println!("Copying aborted...\n\n{}", e)
+    }
 }
