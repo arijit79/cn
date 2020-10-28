@@ -1,6 +1,7 @@
 use clap::{App, Arg};
 use std::fs::copy;
 use std::path::Path;
+use ansi_term::Colour::Red;
 
 fn main() {
     let cli = App::new("cn")
@@ -34,6 +35,7 @@ fn main() {
 
     match r {
         Ok(_) => println!("{} -> {}", source.display(), dest.display()),
-        Err(e) => eprintln!("Copying aborted...\n\n{}", e),
+        Err(e) => eprintln!("Copying aborted...\n\n{}", 
+           Red.bold().paint(e.to_string()))
     }
 }
