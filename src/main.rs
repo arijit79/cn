@@ -1,7 +1,15 @@
+mod checks;
+
+use ansi_term::Colour::Red;
 use clap::{App, Arg};
 use std::fs::copy;
 use std::path::Path;
-use ansi_term::Colour::Red;
+use std::process::exit;
+
+pub fn senderr(e: String, ec: i32) {
+    eprintln!("Copying aborted...\n\n{}", Red.bold().paint(e));
+    exit(ec);
+}
 
 fn main() {
     let cli = App::new("cn")
@@ -31,11 +39,10 @@ fn main() {
         dest.push(&source.file_name().unwrap().to_str().unwrap());
     }
 
+    checks::check_all(&source, &dest);
     let r = copy(source.to_str().unwrap(), dest.to_str().unwrap());
 
-    match r {
-        Ok(_) => println!("{} -> {}", source.display(), dest.display()),
-        Err(e) => eprintln!("Copying aborted...\n\n{}", 
-           Red.bold().paint(e.to_string()))
+    if r.is_err() {
+        senderr(format!("'{}' Permission denied", dest.display()), 2)
     }
 }
