@@ -16,7 +16,7 @@ pub fn copy_dir(dir: &str, dest: PathBuf) {
         let os_item_name = item.unwrap().file_name();
         let item_name = os_item_name.to_str().unwrap().to_string();
 
-        // Keep a clone of the source specifically for this 
+        // Keep a clone of the source specifically for this
         // iteration. Also push the item name
         let mut spath = PathBuf::from(dir);
         spath.push(&item_name);
@@ -24,7 +24,7 @@ pub fn copy_dir(dir: &str, dest: PathBuf) {
         if PathBuf::from(&spath).is_dir() {
             dirs.push(spath.to_str().unwrap().to_string());
         } else {
-            // Keep a clone of the destination specifically for this 
+            // Keep a clone of the destination specifically for this
             // iteration. Also push the item name
             let mut dpath = dest.clone();
             dpath.push(&item_name);
@@ -37,7 +37,6 @@ pub fn copy_dir(dir: &str, dest: PathBuf) {
         copy_item(dirs, dest);
     }
 }
-
 
 pub fn copy_file(file: &str, dest: PathBuf) {
     // Generate the PathBuf for the file and do the checks

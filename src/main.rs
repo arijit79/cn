@@ -77,13 +77,18 @@ fn main() {
 
     // Get the destination and check if it exists
     let dest = PathBuf::from(cli.value_of("dest").unwrap());
-    if !dest.exists() {
-        senderr(format!("'{}' No such file or directory", dest.display()));
-        exit(1);
+
+    // Check if many sources are given to destination which is a file
+    if sources.len() > 1 && (dest.is_file() || !dest.exists()) {
+        senderr(format!(
+            "'{}' Multiple sources given to a single source file",
+            dest.display()
+        ));
+        exit(2);
     }
 
     // Check if we have write permissions
-    if dest.metadata().unwrap().permissions().readonly() {
+    if dest.exists() && dest.metadata().unwrap().permissions().readonly() {
         senderr(format!("'{}' Permission denied", dest.display()));
         exit(1);
     }
