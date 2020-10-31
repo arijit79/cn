@@ -13,6 +13,7 @@ pub fn check_all(s: &PathBuf) -> Result<(), Abort> {
         senderr(format!("'{}' No such file or directory", s.display()));
         return Err(Abort);
     }
+    // Check if we have read the file
     if File::open(&s).is_err() {
         senderr(format!("'{}' Permission denied", s.display()));
         return Err(Abort);
