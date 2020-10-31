@@ -1,24 +1,21 @@
-use crate::senderr;
+use crate::{senderr, Abort};
 use std::fs::File;
 use std::path::PathBuf;
 
 /* REFERENCE FOR ERROR CODES
 0 - Successful
-1 - Source or destination does not exists
-2 - Permission error
+1 - Permission error
 */
 
-pub fn check_all(s: &PathBuf, d: &PathBuf) {
+pub fn check_all(s: &PathBuf, d: &PathBuf) -> Result<(), Abort> {
     // Check if source exists and it can be read
     if !s.exists() {
-        senderr(format!("'{}' No such file or directory", s.display()), 1)
+        senderr(format!("'{}' No such file or directory", s.display()));
+        return Err(Abort);
     }
     if File::open(&s).is_err() {
-        senderr(format!("'{}' Permission denied", s.display()), 2)
+        senderr(format!("'{}' Permission denied", s.display()));
+        return Err(Abort);
     }
-
-    // Check if the dest folder exists
-    if !d.exists() {
-        senderr(format!("'{}' No such file or directory", d.display()), 3)
-    }
+    Ok(())
 }
