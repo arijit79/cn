@@ -5,7 +5,7 @@ use std::fs::{copy, create_dir};
 use std::path::PathBuf;
 use atty::Stream;
 
-pub fn copy_dir(dir: &str, dest: PathBuf) {
+pub fn copy_dir(dir: &str, dest: PathBuf, copy: bool) {
     // Create the directory. We don't need to check for write
     // permission since we already check that before
     let _ = create_dir(&dest);
@@ -35,7 +35,7 @@ pub fn copy_dir(dir: &str, dest: PathBuf) {
     }
     // Finally, if there are subdirectories, go and copy them
     if !dirs.is_empty() {
-        copy_item(dirs, dest);
+        copy_item(dirs, dest, copy);
     }
 }
 
