@@ -20,9 +20,9 @@ pub fn copy_item(sources: Vec<String>, dest: PathBuf) {
 
             // If the source is a directory, call the copy_dir function else call the copy_file option
             if source.is_dir() {
-                copy_dir(&i, PathBuf::from(d));
+                copy_dir(&i, d);
             } else {
-                copy_file(&i, PathBuf::from(d));
+                copy_file(&i, d);
             }
         }
     } else {
