@@ -3,11 +3,12 @@ use crate::copy_item;
 use ansi_term::Colour::Red;
 use std::fs::{copy, create_dir};
 use std::path::PathBuf;
+use atty::Stream;
 
 pub fn copy_dir(dir: &str, dest: PathBuf) {
     // Create the directory. We don't need to check for write
     // permission since we already check that before
-    create_dir(&dest);
+    let _ = create_dir(&dest);
     // Initialize an empty vector to store subdirectories
     let mut dirs: Vec<String> = Vec::new();
     // Go through the items in the folder
@@ -45,7 +46,7 @@ pub fn copy_file(file: &str, dest: PathBuf) {
 
     // If there are any errors, immidiately abort
     if check_result.is_err() {
-        return ();
+        return;
     }
     // Let's copy the file
     let copy_result = copy(fp.to_str().unwrap(), dest.to_str().unwrap());
@@ -58,5 +59,9 @@ pub fn copy_file(file: &str, dest: PathBuf) {
 
 pub fn senderr(e: String) {
     // Print things in the stderr
-    eprintln!("{}", Red.bold().paint(e));
+    if atty::is(Stream::Stderr) {
+        eprintln!("{}", Red.bold().paint(e));
+    } else {
+        eprintln!("{}", e);
+    }
 }
