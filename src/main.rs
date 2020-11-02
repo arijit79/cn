@@ -5,11 +5,12 @@ use clap::{App, Arg};
 use std::path::PathBuf;
 use std::process::exit;
 use utils::*;
+use std::fs::{remove_dir_all,remove_file};
 
 // A struct to tell that furthur execution of the code should stop
 pub struct Abort;
 
-pub fn copy_item(sources: Vec<String>, dest: PathBuf) {
+pub fn copy_item(sources: Vec<String>, dest: PathBuf, copy: bool) {
     if dest.is_dir() {
         for i in sources {
             let source = PathBuf::from(&i);
@@ -20,15 +21,24 @@ pub fn copy_item(sources: Vec<String>, dest: PathBuf) {
 
             // If the source is a directory, call the copy_dir function else call the copy_file option
             if source.is_dir() {
-                copy_dir(&i, d);
+                copy_dir(&i, d, copy);
+                if !copy {
+                    let _ = remove_dir_all(&i);
+                }
             } else {
                 copy_file(&i, d);
+                if !copy {
+                    let _ = remove_file(&i);
+                }
             }
         }
     } else {
         // If the destination is not a directory, coy the single file
         for file in sources {
             copy_file(&file, dest.clone());
+            if !copy {
+                let _ = remove_file(&file);
+            }
         }
     }
 }
@@ -43,12 +53,14 @@ fn main() {
             Arg::with_name("recursive")
                 .long("recursive")
                 .short("r")
+                .conflicts_with("Recursive")
                 .help("Recursively copy directories. Turned on by default"),
         )
         .arg(
-            Arg::with_name("Recursive")
-                .short("R")
-                .help("Alias to -r or --recursive"),
+            Arg::with_name("move")
+                .long("move")
+                .short("m")
+                .help("Move source to destination rather than copying them"),
         )
         .arg(
             Arg::with_name("source")
@@ -94,5 +106,9 @@ fn main() {
     }
 
     // Copy the sources
-    copy_item(sources, dest);
+    if cli.is_present("move") {
+        copy_item(sources, dest, false);
+    } else {
+        copy_item(sources, dest, true);
+    }
 }
