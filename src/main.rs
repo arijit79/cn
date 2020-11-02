@@ -100,9 +100,18 @@ fn main() {
     }
 
     // Check if we have write permissions
-    if dest.exists() && dest.metadata().unwrap().permissions().readonly() {
-        senderr(format!("'{}' Permission denied", dest.display()));
-        exit(1);
+    if dest.exists() {
+        let meta = dest.metadata();
+        match meta {
+            Ok(m) if m.permissions().readonly() => {
+                senderr(format!("'{}' Permission denied", dest.display()));
+                exit(1);
+            },
+            Err(e) => {
+                senderr(format!("'{}' Could not get metadata", dest.display()));
+                exit(1);
+            }
+        }
     }
 
     // Copy the sources
