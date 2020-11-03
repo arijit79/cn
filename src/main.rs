@@ -107,7 +107,8 @@ fn main() {
                 senderr(format!("'{}' Permission denied", dest.display()));
                 exit(1);
             },
-            Err(e) => {
+            Ok(_) => {},
+            Err(_) => {
                 senderr(format!("'{}' Could not get metadata", dest.display()));
                 exit(1);
             }
