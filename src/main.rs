@@ -17,7 +17,7 @@ pub fn copy_item(sources: Vec<String>, dest: PathBuf, copy: bool) {
             // Make a copy of dest, specifically for this iteration
             // and push the filename of the source item
             let mut d = PathBuf::from(&dest);
-            d.push(source.file_name().unwrap().to_str().unwrap());
+            d.push(source.file_name().unwrap());
 
             // If the source is a directory, call the copy_dir function else call the copy_file option
             if source.is_dir() {
@@ -35,7 +35,11 @@ pub fn copy_item(sources: Vec<String>, dest: PathBuf, copy: bool) {
     } else {
         // If the destination is not a directory, coy the single file
         for file in sources {
-            copy_file(&file, dest.clone());
+            if PathBuf::from(&file).is_dir() && !dest.exists() {
+                copy_dir(&file, dest.clone(), copy)
+            } else {
+                copy_file(&file, dest.clone());
+            }
             if !copy {
                 let _ = remove_file(&file);
             }

@@ -42,7 +42,7 @@ pub fn copy_dir(dir: &str, dest: PathBuf, copy: bool) {
 pub fn copy_file(file: &str, dest: PathBuf) {
     // Generate the PathBuf for the file and do the checks
     let fp = PathBuf::from(file);
-    let check_result = checks::check_all(&fp);
+    let check_result = checks::check_all(&fp, &dest);
 
     // If there are any errors, immidiately abort
     if check_result.is_err() {
