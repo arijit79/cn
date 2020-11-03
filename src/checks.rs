@@ -15,7 +15,11 @@ pub fn check_all(s: &PathBuf, d: &PathBuf) -> Result<(), Abort> {
     }
 
     if s == d {
-        senderr(format!("source '{}': is same as the destination '{}'", s.display(), d.display()));
+        senderr(format!(
+            "source '{}': is same as the destination '{}'",
+            s.display(),
+            d.display()
+        ));
     }
     Ok(())
 }
