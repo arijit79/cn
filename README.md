@@ -53,7 +53,7 @@ To see your path directories, do the following
     ```
 
 ## Compiling from source
-`cm` is written in Rust. So you need the following requirements
+`cn` is written in Rust. So you need the following requirements
 - [Git](https://git-scm.org/downloads)
 - [Rust](https://rust-lang.org/tools/install)
 - Cargo (Automatically installed with Rust)
