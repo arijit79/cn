@@ -46,7 +46,7 @@ pub fn copy_item(sources: Vec<String>, dest: PathBuf, copy: bool) {
 fn main() {
     // Get the command-line matches
     let cli = App::new("cn")
-        .version("0.1.0")
+        .version("1.0.0")
         .author("Arijit Dey <arijid79@gmail.com>")
         .about("Copy SOURCE to DESTINATION")
         .arg(
