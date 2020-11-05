@@ -10,3 +10,6 @@ edition = "2018"
 clap = "2.33.3"
 ansi_term = "0.11.0"
 atty = "0.2.14"
+async-recursion = "*"
+futures = "*"
+async-std = { version = "1.7.0", features = ["attributes"]}
