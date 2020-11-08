@@ -33,21 +33,21 @@ Copies `dir1` into `dir2`
 `cn` does not require the `-r` flag while copying a directory. Although the flag does exist to 
 keep compatibility with `cp`
 
-### Rename a file into another
+### Rename a file or directory into another
 ``` sh
 cn -m myfile changedfile
 ```
 
 Renames `myfile` to `changedfile`.
 
-`cn` supports moving files/folders instead of copying them
+`cn` also supports moving files/folders using the `-m` or `--move` flag
 
 ## Installation
 - Grab the binary for the latest release
 - Once downloaded, place the executable into one of the `$PATH` directories
 To see your path directories, do the following
     - Open a terminal
-    ` Run this command
+    - Run this command
     ```
     echo $PATH
     ```
