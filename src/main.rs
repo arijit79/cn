@@ -30,21 +30,21 @@ async fn main() {
 }
 
 pub async fn copy_item(sources: Vec<PathBuf>, dest: PathBuf, flags: &Flags) {
+    // If the dest is a file, only copy the first source and leave the rest
     if dest.is_file().await {
         copy_file(sources[0].clone(), dest, flags).await;
     } else {
+        // Make a Vec of all tasks
         let mut tasks = vec![];
         for i in sources {
+            // Push appropriate function for the itemtype
             if i.is_dir().await {
                 tasks.push(copy_dir(i.clone(), dest.clone(), flags));
             } else {
-                tasks.push(
-                    Box::pin(
-                        copy_file(i.clone(), dest.clone(), &flags)
-                    )
-                );
+                tasks.push(Box::pin(copy_file(i.clone(), dest.clone(), &flags)));
             }
         }
+        // Run all the tasks
         join_all(tasks).await;
     }
 }
