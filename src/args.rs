@@ -1,5 +1,6 @@
 use clap::{App, Arg};
 
+#[derive(Clone)]
 pub struct Flags {
     pub copy: bool,
     pub verbose: bool,
@@ -8,7 +9,11 @@ pub struct Flags {
 
 impl Flags {
     pub fn set(matches: &clap::ArgMatches) -> Flags {
-        let mut default = Flags { copy: true, verbose: false, interactive: false };
+        let mut default = Flags {
+            copy: true,
+            verbose: false,
+            interactive: false,
+        };
 
         if matches.is_present("verbose") {
             default.verbose = true;
