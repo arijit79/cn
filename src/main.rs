@@ -1,13 +1,15 @@
 //Declare all modules
 mod args;
 mod checks;
-mod functions;
-pub mod utils;
+mod copy;
+mod hard_links;
+mod utils;
+mod soft_links;
 
 use args::{matches, Flags};
 use async_std::path::PathBuf;
-use functions::{copy_dir, copy_file};
-use futures::future::join_all;
+use copy::copy_item;
+use soft_links::unix_symlink::sl_item;
 
 // A signal to stop furthur execution of the program
 pub struct Abort;
@@ -26,28 +28,14 @@ async fn main() {
     // Initialize the flags
     let flags = Flags::set(&cli);
     if !flags.copy {
-        utils::senderr(format!("The -m or --move flag is soft-deprecated and use it's use is discouraged"));
+        utils::senderr("The -m or --move flag is soft-deprecated and use it's use is discouraged");
     }
-    // Start copying the various sources
-    copy_item(sources, dest.clone(), &flags).await;
-}
-
-pub async fn copy_item(sources: Vec<PathBuf>, dest: PathBuf, flags: &Flags) {
-    // If the dest is a file, only copy the first source and leave the rest
-    if dest.is_file().await {
-        copy_file(sources[0].clone(), dest, flags).await;
+    // Start copying/linking the various sources
+    if cli.is_present("hard-link") {
+        hard_links::hl_item(sources, dest, &flags).await;
+    } else if cli.is_present("symbolic-link") {
+        sl_item(sources.clone(), dest, &flags).await;
     } else {
-        // Make a Vec of all tasks
-        let mut tasks = vec![];
-        for i in sources {
-            // Push appropriate function for the itemtype
-            if i.is_dir().await {
-                tasks.push(copy_dir(i.clone(), dest.clone(), flags));
-            } else {
-                tasks.push(Box::pin(copy_file(i.clone(), dest.clone(), &flags)));
-            }
-        }
-        // Run all the tasks
-        join_all(tasks).await;
+        copy_item(sources, dest.clone(), &flags).await;
     }
 }
