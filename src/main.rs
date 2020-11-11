@@ -25,6 +25,9 @@ async fn main() {
     let dest = PathBuf::from(cli.value_of("dest").unwrap());
     // Initialize the flags
     let flags = Flags::set(&cli);
+    if !flags.copy {
+        utils::senderr(format!("The -m or --move flag is soft-deprecated and use it's use is discouraged"));
+    }
     // Start copying the various sources
     copy_item(sources, dest.clone(), &flags).await;
 }
