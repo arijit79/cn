@@ -3,8 +3,8 @@ mod args;
 mod checks;
 mod copy;
 mod hard_links;
-mod utils;
 mod soft_links;
+mod utils;
 
 use args::{matches, Flags};
 use async_std::path::PathBuf;

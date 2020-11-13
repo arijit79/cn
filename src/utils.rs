@@ -29,7 +29,7 @@ pub fn prompt(path: &PathBuf) -> bool {
     buffer == "y"
 }
 
-pub fn check_err<M>(message: M, r: Result<(), Error>, path: Option<&PathBuf>) -> Result<(), Abort>
+pub fn check_err<M, T>(message: M, r: Result<T, Error>, path: Option<&PathBuf>) -> Result<(), Abort>
 where
     M: std::fmt::Display,
 {
@@ -40,10 +40,10 @@ where
         } else {
             p = format!("{:?}", path.unwrap().as_os_str());
         }
-        r.unwrap_or_else(|w| {
-            let output = format!("{}{}\n{:?}", message, &p, w.kind());
+        if let Err(e) = r {
+            let output = format!("{}{}\n{:?}", message, &p, e.kind());
             senderr(output);
-        });
+        }
         return Err(Abort);
     }
     Ok(())
