@@ -6,6 +6,26 @@ use async_std::path::PathBuf;
 use async_std::prelude::*;
 use futures::future::join_all;
 
+pub async fn copy_item(sources: Vec<PathBuf>, dest: PathBuf, flags: &Flags) {
+    // If the dest is a file, only copy the first source and leave the rest
+    if dest.is_file().await {
+        copy_file(sources[0].clone(), dest, flags).await;
+    } else {
+        // Make a Vec of all tasks
+        let mut tasks = vec![];
+        for i in sources {
+            // Push appropriate function for the itemtype
+            if i.is_dir().await {
+                tasks.push(copy_dir(i.clone(), dest.clone(), flags));
+            } else {
+                tasks.push(Box::pin(copy_file(i.clone(), dest.clone(), &flags)));
+            }
+        }
+        // Run all the tasks
+        join_all(tasks).await;
+    }
+}
+
 #[async_recursion::async_recursion]
 pub async fn copy_dir(s: PathBuf, dest: PathBuf, flags: &Flags) {
     // Get a clone of the destination
@@ -67,8 +87,13 @@ pub async fn copy_file(s: PathBuf, d: PathBuf, flags: &Flags) {
     if d.is_dir().await {
         d.push(&s.file_name().unwrap());
     }
+    let check_dest = if d.parent().unwrap().as_os_str().is_empty() {
+        PathBuf::from("./")
+    } else {
+        d.parent().unwrap().to_path_buf()
+    };
     // Check if the file passes all checks
-    let checks = check_all(&s, &d).await;
+    let checks = check_all(&s, &check_dest).await;
     if checks.is_err() {
         return;
     }

@@ -66,19 +66,50 @@ pub fn matches() -> clap::ArgMatches<'static> {
                 .help("Move source to destination rather than copying them"),
         )
         .arg(
+            Arg::with_name("follow-cli-symlinks")
+                .short("H")
+                .help("Follow symbolic links directly passed in command line")
+        )
+        .arg(
+            Arg::with_name("follow-source-symlinks")
+                .short("L")
+                .long("dereference")
+                .help("Follow symbolic links in sources")
+        )
+        .arg(
+            Arg::with_name("no-target-directory")
+            .short("T")
+            .long("no-target-directory")
+            .help("Treat destination as a regular file")
+        )
+        .arg(
+            Arg::with_name("hard-link")
+            .short("l")
+            .long("link")
+            .help("Make hard links instead of copying")
+            .conflicts_with("symbolic-links")
+        )
+        .arg(
+            Arg::with_name("symbolic-link")
+            .short("s")
+            .long("symbolic-link")
+            .help("Make symbolic links instead of copying")
+        )
+        .arg(
             Arg::with_name("source")
-                .takes_value(true)
-                .value_name("SOURCE")
-                .multiple(true)
-                .help("The paths that needs to be copied")
-                .required(true),
+            .takes_value(true)
+            .value_name("SOURCE")
+            .multiple(true)
+            .help("The paths that needs to be copied")
+            .required(true)
+            .min_values(1)
         )
         .arg(
             Arg::with_name("dest")
-                .takes_value(true)
-                .value_name("DESTINATION")
-                .help("The directory where the files need to be placed")
-                .required(true),
+            .takes_value(true)
+            .value_name("DESTINATION")
+            .help("The path where the sources need to be placed")
+            .required(true)
         )
         .get_matches()
 }

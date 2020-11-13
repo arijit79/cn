@@ -1,6 +1,7 @@
 use crate::{utils::senderr, Abort};
 use async_std::fs::File;
 use async_std::path::PathBuf;
+use std::process::exit;
 
 pub async fn check_all(s: &PathBuf, d: &PathBuf) -> Result<(), Abort> {
     // Check if source exists and it can be read
@@ -15,6 +16,12 @@ pub async fn check_all(s: &PathBuf, d: &PathBuf) -> Result<(), Abort> {
         return Err(Abort);
     }
 
+    // Check if we have readonly permission for destination
+    if d.metadata().await.unwrap().permissions().readonly() {
+        senderr(format!("'{}' Permission denied", s.display()));
+        exit(1);
+    }
+
     // Check if source is not same as the destination
     if s == d {
         senderr(format!(
@@ -25,4 +32,15 @@ pub async fn check_all(s: &PathBuf, d: &PathBuf) -> Result<(), Abort> {
         return Err(Abort);
     }
     Ok(())
+}
+
+pub fn check_canonical(s: &PathBuf, d: &PathBuf) {
+    let mut source_path = std::env::current_dir().unwrap();
+    source_path.push(s.parent().unwrap());
+    let mut dest_path = std::env::current_dir().unwrap();
+    dest_path.push(d.parent().unwrap());
+    if source_path.canonicalize().unwrap() != dest_path.canonicalize().unwrap() {
+        senderr("Source and destination must be in the same directory when creating relative symbolic links".to_string());
+        exit(2);
+    }
 }

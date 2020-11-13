@@ -1,14 +1,20 @@
+use crate::Abort;
 use ansi_term::Colour::Red;
 use async_std::path::PathBuf;
 use atty::Stream;
+use std::io::Error;
 use std::io::{prelude::*, stdin, stdout};
 
-pub fn senderr(e: String) {
+pub fn senderr<E>(e: E)
+where
+    E: Into<String>,
+{
+    let output = String::from(e.into());
     // Print things in the stderr
     if atty::is(Stream::Stderr) {
-        eprintln!("{}", Red.bold().paint(e));
+        eprintln!("{}", Red.bold().paint(output));
     } else {
-        eprintln!("{}", e);
+        eprintln!("{}", output);
     }
 }
 
@@ -21,4 +27,24 @@ pub fn prompt(path: &PathBuf) -> bool {
     let mut buffer = String::new();
     let _ = stdin().read_line(&mut buffer);
     buffer == "y"
+}
+
+pub fn check_err<M>(message: M, r: Result<(), Error>, path: Option<&PathBuf>) -> Result<(), Abort>
+where
+    M: std::fmt::Display,
+{
+    if r.is_err() {
+        let p;
+        if path.is_none() {
+            p = "".to_string()
+        } else {
+            p = format!("{:?}", path.unwrap().as_os_str());
+        }
+        r.unwrap_or_else(|w| {
+            let output = format!("{}{}\n{:?}", message, &p, w.kind());
+            senderr(output);
+        });
+        return Err(Abort);
+    }
+    Ok(())
 }
