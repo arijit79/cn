@@ -1,6 +1,6 @@
 use crate::args::Flags;
 use crate::checks::check_all;
-use crate::utils::prompt;
+use crate::utils::{check_err, prompt};
 use async_std::fs::{copy, create_dir, read_dir, remove_dir_all, remove_file};
 use async_std::path::PathBuf;
 use async_std::prelude::*;
@@ -87,55 +87,34 @@ pub async fn copy_file(s: PathBuf, d: PathBuf, flags: &Flags) {
     if d.is_dir().await {
         d.push(&s.file_name().unwrap());
     }
-    let check_dest = if d.parent().unwrap().as_os_str().is_empty() {
-        PathBuf::from("./")
-    } else {
-        d.parent().unwrap().to_path_buf()
-    };
     // Check if the file passes all checks
-    let checks = check_all(&s, &check_dest).await;
+    let checks = check_all(&s, &d).await;
     if checks.is_err() {
         return;
     }
-    // If it is interactive and d exists, prompt the user
-    if flags.interactive && d.exists().await {
-        if prompt(&d) {
-            let result = copy(&s, &d).await;
-            // If there are no errors, remove the source ifit was a
-            // move operation
-            if result.is_err() {
-                // Handle errors
-                result.unwrap_or_else(|r| {
-                    eprintln!("Failed to copy...\n\n{}", r.to_string());
-                    0
-                });
-            } else {
-                // If there are no errors, remove the source if it
-                // was a   move operation
-                if !flags.copy {
-                    let _ = remove_file(&s).await;
-                }
-                // If verbose mode, print some things
-                if flags.verbose {
-                    println!("{} -> {}", s.display(), d.display())
-                }
-            }
-        }
-    } else {
-        // If it was a non-interactive operation, do the same things as above
+    let async_copy = async {
         let result = copy(&s, &d).await;
-        if result.is_err() {
-            result.unwrap_or_else(|r| {
-                eprintln!("{:?}", r.kind());
-                0
-            });
-        } else {
+        // If there are no errors, remove the source ifit was a
+        // move operation
+        if !check_err("There was an error copying", result, Some(&s)).is_err() {
+            // If there are no errors, remove the source if it
+            // was a   move operation
             if !flags.copy {
                 let _ = remove_file(&s).await;
             }
+            // If verbose mode, print some things
             if flags.verbose {
                 println!("{} -> {}", s.display(), d.display())
             }
         }
+    };
+    // If it is interactive and d exists, prompt the user
+    if flags.interactive && d.exists().await {
+        if prompt(&d) {
+            async_copy.await;
+        }
+    } else {
+        // If it was a non-interactive operation, do the same things as above
+        async_copy.await;
     }
 }
