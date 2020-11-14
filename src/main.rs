@@ -28,7 +28,7 @@ async fn main() {
     // Initialize the flags
     let flags = Flags::set(&cli);
     if !flags.copy {
-        utils::senderr("The -m or --move flag is soft-deprecated and use it's use is discouraged");
+        utils::move_warning();
     }
     // Start copying/linking the various sources
     if cli.is_present("hard-link") {

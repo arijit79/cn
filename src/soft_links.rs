@@ -65,6 +65,7 @@ pub mod unix_symlink {
         // Push the source file name
         d.push(s.file_name().unwrap());
 
+        // A function to Create the directory
         let init_dir = async {
             let r = create_dir(&d).await;
             if check_err("There was an error creating directory", r, Some(&d)).is_err() {
@@ -76,23 +77,29 @@ pub mod unix_symlink {
             }
         };
 
+        // If the directory already exists and interactive mode is turned on, prompt 
+        // for overwrite
         if d.exists().await {
             if flags.interactive {
                 if prompt(&d) {
+                    // if the user confirms, remove it and create the dir
                     let _ = async_std::fs::remove_dir_all(&d).await;
                     init_dir.await;
                 }
             } else {
+                // If no interactive, do the same as if it was confirmed
                 let _ = async_std::fs::remove_dir_all(&d).await;
                 init_dir.await;
             }
         } else {
+            // Create dir if it dosen't exists
             init_dir.await;
         }
-
+        // A Vec of all tasks
         let mut tasks = vec![];
         let mut entries = async_std::fs::read_dir(&s).await.unwrap();
         while let Some(p) = entries.next().await {
+            // For each entry, add a task for it's respective function
             let name = p.unwrap().file_name();
             let mut source = s.clone();
             source.push(&name);
@@ -102,35 +109,34 @@ pub mod unix_symlink {
                 tasks.push(Box::pin(sl_file(source, d.clone(), flags)));
             }
         }
+        // Run all tasks
         join_all(tasks).await;
     }
 
     pub async fn sl_file(mut s: PathBuf, mut d: PathBuf, flags: &Flags) {
+        // If dest is a dir, append the file name of the source after it
         if d.is_dir().await {
             d.push(s.file_name().unwrap());
         }
-
-        let check_dir = if d.parent().unwrap().to_str().unwrap().is_empty() {
-            PathBuf::from("./")
-        } else {
-            d.parent().unwrap().to_path_buf()
-        };
-        if check_all(&s, &check_dir).await.is_err() {
+        // Run the checks
+        if check_all(&s, &d).await.is_err() {
             return;
         }
+        // Check if the source is relative
         if s.is_relative() {
             s = PathBuf::from(s.file_name().unwrap());
         }
-
+        // A function to symlink a file
         let symlink_fn = async {
             let result = symlink(&s, &d).await;
-            if check_err("There was an error symlinking", result, Some(&s)).is_err()
+            if check_err("There was an error symlinking", result, Some(&s)).is_ok()
                 && flags.verbose
             {
                 println!("{} -> {}", s.display(), d.display());
             }
         };
 
+        // Basically same logic as line 80-87
         if d.exists().await {
             if flags.interactive {
                 if prompt(&d) {
