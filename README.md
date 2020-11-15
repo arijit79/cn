@@ -33,14 +33,48 @@ Copies `dir1` into `dir2`
 `cn` does not require the `-r` flag while copying a directory. Although the flag does exist to 
 keep compatibility with `cp`
 
-### Rename a file or directory into another
+### Symlink a file or directory into another
 ``` sh
-cn -m myfile changedfile
+cn -s myfile changedfile
 ```
 
-Renames `myfile` to `changedfile`.
+Makes a symbolic link of `myfile` to `changedfile`.
 
-`cn` also supports moving files/folders using the `-m` or `--move` flag
+One interesting feature `cn` provides that `cp` dosen't have is where relative paths 
+can be used for files which are in same direct ancestor, irrespective of `cn`'s
+current directory
+
+Let's take a example
+if we run
+``` sh
+cp -s somedir/file somedir/file2
+```
+`cp` will complain this, since `cp` must be present in `somedir`
+```
+cp: somedir/file: can make relative symbolic links only in current directory
+```
+
+While `cn` has absolutely no problems doing this  
+**Though there is one caveot to this, the source and the destination must have the same direct ancestor**
+
+### Hard link a file or directory into another
+``` sh
+cn -l myfile hardlinked-file
+```
+
+Makes a hard link of `myfile` to `hardlinked-file`.
+
+**Only files could be hard linked. This is not an implementation restriction rather OSs don't support it**
+
+**Only one file could be hard linked at once, and its destination file name should also be present. This restriction will be removed in future releases**
+Meaning, you can't run these
+``` sh
+cn -l file somedir/ # Error
+```
+
+``` sh
+cn -l file1 file2 somedir/ # Error
+```
 
 ## Installation
 - Grab the binary for the latest release
