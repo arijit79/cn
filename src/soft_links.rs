@@ -77,7 +77,7 @@ pub mod unix_symlink {
             }
         };
 
-        // If the directory already exists and interactive mode is turned on, prompt 
+        // If the directory already exists and interactive mode is turned on, prompt
         // for overwrite
         if d.exists().await {
             if flags.interactive {
@@ -129,8 +129,7 @@ pub mod unix_symlink {
         // A function to symlink a file
         let symlink_fn = async {
             let result = symlink(&s, &d).await;
-            if check_err("There was an error symlinking", result, Some(&s)).is_ok()
-                && flags.verbose
+            if check_err("There was an error symlinking", result, Some(&s)).is_ok() && flags.verbose
             {
                 println!("{} -> {}", s.display(), d.display());
             }

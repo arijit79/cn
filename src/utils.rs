@@ -57,7 +57,8 @@ where
 // Display a warning if the move flag is used
 // THIS SHOULD BE REMOVED ONCE THE MOVE FLAG IS COMPLETELY DEPRECATED
 pub fn move_warning() {
-    const MESSAGE: &str = "The -m or --move flag is soft-deprecated and use it's use is discouraged";
+    const MESSAGE: &str =
+        "The -m or --move flag is soft-deprecated and use it's use is discouraged";
     if atty::is(Stream::Stderr) {
         eprintln!("{}", Yellow.paint(MESSAGE))
     } else {

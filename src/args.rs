@@ -1,4 +1,4 @@
-use clap::{App, Arg};
+use clap::{App, Arg, SubCommand};
 
 #[derive(Clone)]
 pub struct Flags {
@@ -28,7 +28,24 @@ impl Flags {
     }
 }
 
-pub fn matches() -> clap::ArgMatches<'static> {
+pub fn generate_completions(matches: &clap::ArgMatches) {
+    use std::io::prelude::Write;
+
+    let shell = if let Some(s) = matches.value_of("shell") {
+        s.to_string()
+    } else {
+        if let Ok(s) = std::env::var("SHELL") {
+            s
+        } else {
+            crate::utils::senderr(
+                "SHELL argument was not given and it cannot be determined from the $SHELL",
+            );
+            std::process::exit(crate::STATUS_ERR);
+        }
+    };
+}
+
+pub fn cli() -> App<'static, 'static> {
     // Get the command-line matches
     App::new("cn")
         .version("2.0.0")
@@ -60,6 +77,32 @@ pub fn matches() -> clap::ArgMatches<'static> {
             .help("Show verbose output")
         )
         .arg(
+            Arg::with_name("completion")
+            .long("generate-completion")
+            .takes_value(true)
+            .value_name("SHELL")
+            .help("Generate completions for the given SHELL")
+        )
+        .subcommand(
+            SubCommand::with_name("completion")
+            .arg(
+                Arg::with_name("SHELL")
+                .help("Generate completions for this SHELL. If the value is omitted, then the value of $SHELL is taken into consideration")
+                .takes_value(true)
+                .short("s")
+                .long("shell")
+                .value_name("SHELL")
+            )
+            .arg(
+                Arg::with_name("OUTPUT")
+                .help("Location to dump the output. If the flag is omitted, the result will be printed to stdout")
+                .short("o")
+                .long("output")
+                .takes_value(true)
+                .value_name("OUTPUT")
+            )
+        )
+        .arg(
             Arg::with_name("move")
                 .long("move")
                 .short("m")
@@ -75,6 +118,15 @@ pub fn matches() -> clap::ArgMatches<'static> {
                 .short("L")
                 .long("dereference")
                 .help("Follow symbolic links in sources")
+        )
+        .arg(
+            Arg::with_name("target-directory")
+                .short("t")
+                .long("target-directory")
+                .help("Copy the sources into the this directory")
+                .takes_value(true)
+                .require_equals(true)
+                .value_name("DEST")
         )
         .arg(
             Arg::with_name("no-target-directory")
@@ -96,20 +148,10 @@ pub fn matches() -> clap::ArgMatches<'static> {
             .help("Make symbolic links instead of copying")
         )
         .arg(
-            Arg::with_name("source")
+            Arg::with_name("paths")
             .takes_value(true)
-            .value_name("SOURCE")
+            .value_name("PATHS")
             .multiple(true)
-            .help("The paths that needs to be copied")
-            .required(true)
-            .min_values(1)
+            .help("The paths that needs to be copied. The last argument is taken as the destination unless -t is given")
         )
-        .arg(
-            Arg::with_name("dest")
-            .takes_value(true)
-            .value_name("DESTINATION")
-            .help("The path where the sources need to be placed")
-            .required(true)
-        )
-        .get_matches()
 }
