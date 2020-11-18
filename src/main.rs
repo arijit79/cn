@@ -23,9 +23,11 @@ pub struct Abort;
 async fn main() {
     // Get all CLI arguments
     let app = cli();
+    // Kepp a clone of app, for use in gen_completion function, since `get_matches()` will consume it
     let app_clone = app.clone();
     let matches = app.get_matches();
 
+    // If completion is present, generate it and exit
     if matches.is_present("completion") {
         gen_completions::generate_completions(app_clone);
         std::process::exit(STATUS_OK);

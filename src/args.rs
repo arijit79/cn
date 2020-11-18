@@ -69,6 +69,7 @@ pub fn cli() -> App<'static, 'static> {
                 .long("shell")
                 .value_name("SHELL")
                 .required(true)
+                .possible_values(&["bash", "fish", "zsh", "elvish", "powershell"])
             )
             .arg(
                 Arg::with_name("output")
