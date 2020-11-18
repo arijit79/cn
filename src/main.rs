@@ -10,7 +10,6 @@ mod utils;
 use args::{cli, Flags};
 use async_std::path::PathBuf;
 use copy::copy_item;
-use soft_links::unix_symlink::sl_item;
 use std::process::exit;
 
 // Exit codes
@@ -61,7 +60,10 @@ async fn main() {
     if matches.is_present("hard-link") {
         hard_links::hl_item(sources, dest, &flags).await;
     } else if matches.is_present("symbolic-link") {
-        sl_item(sources.clone(), dest, &flags).await;
+        #[cfg(target_family = "unix")]
+        soft_links::unix_symlink::sl_item(sources.clone(), dest, &flags).await;
+        #[cfg(target_family = "windows")]
+        soft_links::win_symlink::sl_item(sources.clone(), dest, &flags).await;
     } else {
         copy_item(sources, dest.clone(), &flags).await;
     }
