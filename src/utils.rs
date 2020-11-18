@@ -1,5 +1,5 @@
 use crate::Abort;
-use ansi_term::Colour::{Red, Yellow};
+use ansi_term::Colour::Red;
 use async_std::path::PathBuf;
 use atty::Stream;
 use std::io::Error;
@@ -58,9 +58,9 @@ where
 // THIS SHOULD BE REMOVED ONCE THE MOVE FLAG IS COMPLETELY DEPRECATED
 pub fn move_warning() {
     const MESSAGE: &str =
-        "The -m or --move flag is soft-deprecated and use it's use is discouraged";
+        "The -m or --move flag is hard-deprecated and use it's use is strongly discouraged";
     if atty::is(Stream::Stderr) {
-        eprintln!("{}", Yellow.paint(MESSAGE))
+        eprintln!("{}", Red.paint(MESSAGE))
     } else {
         eprintln!("{}", MESSAGE);
     }
