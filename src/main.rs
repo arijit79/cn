@@ -11,6 +11,7 @@ use args::{cli, Flags};
 use async_std::path::PathBuf;
 use copy::copy_item;
 use soft_links::unix_symlink::sl_item;
+use std::process::exit;
 
 // Exit codes
 const STATUS_OK: i32 = 0;
@@ -23,12 +24,14 @@ pub struct Abort;
 async fn main() {
     // Get all CLI arguments
     let app = cli();
+    // Kepp a clone of app, for use in gen_completion function, since `get_matches()` will consume it
     let app_clone = app.clone();
     let matches = app.get_matches();
 
+    // If completion is present, generate it and exit
     if matches.is_present("completion") {
         gen_completions::generate_completions(app_clone);
-        std::process::exit(STATUS_OK);
+        exit(STATUS_OK);
     }
 
     // Get all sources in PathBuf
@@ -45,11 +48,12 @@ async fn main() {
             sources.last().unwrap().to_owned()
         } else {
             utils::senderr("PATHS must have at least two arguments unless -t is given");
-            std::process::exit(1);
+            exit(STATUS_ERR);
         }
     };
     // Initialize the flags
     let flags = Flags::set(&matches);
+    // If -m flag is given, send a warning
     if !flags.copy {
         utils::move_warning();
     }

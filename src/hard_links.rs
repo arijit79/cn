@@ -13,13 +13,13 @@ pub async fn hl_item(sources: Vec<PathBuf>, mut dest: PathBuf, flags: &Flags) {
         senderr(format!(
             "Only one source could be given when making hard links"
         ));
-        exit(2);
+        exit(crate::STATUS_ERR);
     }
     let source = &sources[0];
     // Check if source is a regular file
     if !source.is_file().await {
         senderr("Source must be a regular file".to_string());
-        exit(2);
+        exit(crate::STATUS_ERR);
     }
     // If destination is a directory, push the source filename to the dest
     if dest.is_dir().await {
@@ -37,7 +37,7 @@ pub async fn hl_item(sources: Vec<PathBuf>, mut dest: PathBuf, flags: &Flags) {
     // Run checks
     let basic_checks = check_all(&source, &dest).await;
     if basic_checks.is_err() {
-        exit(1);
+        exit(crate::STATUS_ERR);
     }
     // Make the link
     let _ = hard_link(source, dest).await;
