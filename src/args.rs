@@ -28,23 +28,6 @@ impl Flags {
     }
 }
 
-pub fn generate_completions(matches: &clap::ArgMatches) {
-    use std::io::prelude::Write;
-
-    let shell = if let Some(s) = matches.value_of("shell") {
-        s.to_string()
-    } else {
-        if let Ok(s) = std::env::var("SHELL") {
-            s
-        } else {
-            crate::utils::senderr(
-                "SHELL argument was not given and it cannot be determined from the $SHELL",
-            );
-            std::process::exit(crate::STATUS_ERR);
-        }
-    };
-}
-
 pub fn cli() -> App<'static, 'static> {
     // Get the command-line matches
     App::new("cn")
@@ -76,25 +59,19 @@ pub fn cli() -> App<'static, 'static> {
             .long("verbose")
             .help("Show verbose output")
         )
-        .arg(
-            Arg::with_name("completion")
-            .long("generate-completion")
-            .takes_value(true)
-            .value_name("SHELL")
-            .help("Generate completions for the given SHELL")
-        )
         .subcommand(
             SubCommand::with_name("completion")
             .arg(
-                Arg::with_name("SHELL")
-                .help("Generate completions for this SHELL. If the value is omitted, then the value of $SHELL is taken into consideration")
+                Arg::with_name("shell")
+                .help("Generate completions for this SHELL")
                 .takes_value(true)
                 .short("s")
                 .long("shell")
                 .value_name("SHELL")
+                .required(true)
             )
             .arg(
-                Arg::with_name("OUTPUT")
+                Arg::with_name("output")
                 .help("Location to dump the output. If the flag is omitted, the result will be printed to stdout")
                 .short("o")
                 .long("output")

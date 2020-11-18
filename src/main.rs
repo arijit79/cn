@@ -2,6 +2,7 @@
 mod args;
 mod checks;
 mod copy;
+mod gen_completions;
 mod hard_links;
 mod soft_links;
 mod utils;
@@ -21,11 +22,12 @@ pub struct Abort;
 #[async_std::main]
 async fn main() {
     // Get all CLI arguments
-    let cli = cli();
-    let matches = cli.get_matches();
+    let app = cli();
+    let app_clone = app.clone();
+    let matches = app.get_matches();
 
     if matches.is_present("completion") {
-        args::generate_completions(&matches);
+        gen_completions::generate_completions(app_clone);
         std::process::exit(STATUS_OK);
     }
 
