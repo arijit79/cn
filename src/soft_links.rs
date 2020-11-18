@@ -27,7 +27,7 @@ pub mod unix_symlink {
                     // Check if none of the paths are relative
                     if i.is_relative() || dest.is_relative() {
                         senderr("Relative paths are not allowed when symlinking directories");
-                        exit(2);
+                        exit(crate::STATUS_ERR);
                     }
                     // Add a task of symlinking the contents of directory
                     tasks.push(sl_dir(i, dest.clone(), flags));
@@ -38,7 +38,7 @@ pub mod unix_symlink {
                     } else if i.is_relative() ^ dest.is_relative() {
                         // Error if there is a mix of relative and absolute paths
                         senderr("Absolute and relative paths cannot be used simultaniously");
-                        exit(2);
+                        exit(crate::STATUS_ERR);
                     }
                     // Add a task of symlinking a file
                     tasks.push(Box::pin(sl_file(i, dest.clone(), flags)));

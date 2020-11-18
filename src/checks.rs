@@ -28,7 +28,7 @@ pub async fn check_all(s: &PathBuf, d: &PathBuf) -> Result<(), Abort> {
     // Check destination write permissions
     if check_dir.metadata().await.unwrap().permissions().readonly() {
         senderr(format!("'{}' Permission denied", s.display()));
-        exit(1);
+        exit(crate::STATUS_ERR);
     }
 
     // Check if source is not same as the destination
@@ -52,6 +52,6 @@ pub fn check_canonical(s: &PathBuf, d: &PathBuf) {
     if source_path.canonicalize().unwrap() != dest_path.canonicalize().unwrap() {
         // If they don't match, throw an error
         senderr("Source and destination must be in the same directory when creating relative symbolic links".to_string());
-        exit(2);
+        exit(crate::STATUS_ERR);
     }
 }
