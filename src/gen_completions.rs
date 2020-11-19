@@ -13,7 +13,7 @@ pub enum Output {
 }
 
 // Write the completion data for the shell to the output
-pub fn write_completions(output: Output, shell: Shell, mut app: App<'static, 'static>) {
+pub fn write_completions(output: Output, shell: Shell, mut app: App<'static>) {
     match output {
         Output::File(p) => {
             // Check if the file could be written
@@ -37,7 +37,7 @@ pub fn write_completions(output: Output, shell: Shell, mut app: App<'static, 'st
     }
 }
 
-pub fn generate_completions(app: App<'static, 'static>) {
+pub fn generate_completions(app: App<'static>) {
     // Clone the app here, since `get_matches()` will consume it
     let app_clone = app.clone();
     let argmatches = app.get_matches();
