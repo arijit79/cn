@@ -34,6 +34,10 @@ async fn main() {
     }
 
     // Get all sources in PathBuf
+    if !matches.is_present("paths") {
+        utils::senderr("At least one source must be given");
+        exit(STATUS_ERR);
+    }
     let mut sources: Vec<PathBuf> = Vec::new();
     matches
         .values_of("paths")
@@ -44,7 +48,7 @@ async fn main() {
         PathBuf::from(matches.value_of("target-directory").unwrap())
     } else {
         if sources.len() > 1 {
-            sources.last().unwrap().to_owned()
+            sources.pop().unwrap()
         } else {
             utils::senderr("PATHS must have at least two arguments unless -t is given");
             exit(STATUS_ERR);

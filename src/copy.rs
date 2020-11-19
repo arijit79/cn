@@ -11,8 +11,8 @@ pub async fn copy_item(sources: Vec<PathBuf>, dest: PathBuf, flags: &Flags) {
     if dest.is_file().await {
         copy_file(sources[0].clone(), dest, flags).await;
     } else {
+        let mut tasks = Vec::with_capacity(4);
         // Make a Vec of all tasks
-        let mut tasks = vec![];
         for i in sources {
             // Push appropriate function for the itemtype
             if i.is_dir().await {
@@ -54,7 +54,7 @@ pub async fn copy_dir(s: PathBuf, dest: PathBuf, flags: &Flags) {
     }
     // Read the source directory and init a tasks vec
     let mut dir_read = read_dir(&s).await.unwrap();
-    let mut tasks = vec![];
+    let mut tasks = Vec::with_capacity(4);
     while let Some(item) = dir_read.next().await {
         // Read the item and generate the destination path
         let mut name = PathBuf::from(&s);
