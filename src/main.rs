@@ -2,17 +2,19 @@
 mod args;
 mod checks;
 mod copy;
-mod gen_completions;
+// TODO: RE-implement when clap::IntoApp is complete
+// mod gen_completions;
 mod hard_links;
 mod soft_links;
 mod utils;
 
-use args::{cli, Flags};
-use async_std::path::PathBuf;
+use args::{Cli, Flags};
+use clap::Clap;
 use copy::copy_item;
 use std::process::exit;
 
 // Exit codes
+#[allow(dead_code)]
 const STATUS_OK: i32 = 0;
 const STATUS_ERR: i32 = 1;
 
@@ -22,30 +24,24 @@ pub struct Abort;
 #[async_std::main]
 async fn main() {
     // Get all CLI arguments
-    let app = cli();
-    // Kepp a clone of app, for use in gen_completion function, since `get_matches()` will consume it
-    let app_clone = app.clone();
-    let matches = app.get_matches();
+    let cli = Cli::parse();
 
+    // // TODO: RE-implement when clap::IntoApp is complete
     // If completion is present, generate it and exit
-    if matches.is_present("completion") {
-        gen_completions::generate_completions(app_clone);
-        exit(STATUS_OK);
-    }
+    // if let Some(ref scmd) = cli.subcmd {
+    //     if let args::SubCommand::Completion(c) = scmd {
+    //         gen_completions::generate_completions(cli);
+    //         exit(STATUS_OK);
+    //     }
+    // }
 
-    // Get all sources in PathBuf
-    if !matches.is_present("paths") {
-        utils::senderr("At least one source must be given");
-        exit(STATUS_ERR);
-    }
-    let mut sources: Vec<PathBuf> = Vec::new();
-    matches
-        .values_of("paths")
-        .unwrap()
-        .for_each(|i| sources.push(PathBuf::from(i)));
+    // Initialize the flags
+    let flags = Flags::set(&cli);
+
+    let mut sources = cli.paths;
     // Get destination in PathBuf
-    let dest = if matches.is_present("target-directory") {
-        PathBuf::from(matches.value_of("target-directory").unwrap())
+    let dest = if cli.target_directory.is_some() {
+        cli.target_directory.unwrap()
     } else {
         if sources.len() > 1 {
             sources.pop().unwrap()
@@ -54,16 +50,14 @@ async fn main() {
             exit(STATUS_ERR);
         }
     };
-    // Initialize the flags
-    let flags = Flags::set(&matches);
     // If -m flag is given, send a warning
-    if !flags.copy {
+    if cli.r#move {
         utils::move_warning();
     }
     // Start copying/linking the various sources
-    if matches.is_present("hard-link") {
+    if cli.hard_link {
         hard_links::hl_item(sources, dest, &flags).await;
-    } else if matches.is_present("symbolic-link") {
+    } else if cli.symbolic_links {
         #[cfg(target_family = "unix")]
         soft_links::unix_symlink::sl_item(sources.clone(), dest, &flags).await;
         #[cfg(target_family = "windows")]

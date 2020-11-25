@@ -1,4 +1,5 @@
-use clap::{App, Arg, SubCommand};
+use async_std::path::PathBuf;
+use clap::{crate_authors, crate_version, Clap};
 
 #[derive(Clone)]
 pub struct Flags {
@@ -8,128 +9,81 @@ pub struct Flags {
 }
 
 impl Flags {
-    pub fn set(matches: &clap::ArgMatches) -> Flags {
+    pub fn set(matches: &Cli) -> Flags {
         let mut default = Flags {
             copy: true,
             verbose: false,
             interactive: false,
         };
 
-        if matches.is_present("verbose") {
+        if matches.verbose {
             default.verbose = true;
         }
-        if matches.is_present("move") {
+        if matches.r#move {
             default.copy = false;
         }
-        if matches.is_present("interactive") {
+        if matches.interactive {
             default.interactive = true;
         }
         default
     }
 }
 
-pub fn cli() -> App<'static, 'static> {
-    // Get the command-line matches
-    App::new("cn")
-        .version("2.0.0")
-        .author("Arijit Dey <arijid79@gmail.com>")
-        .about("Copy SOURCE to DESTINATION")
-        .arg(
-            Arg::with_name("recursive")
-                .long("recursive")
-                .short("r")
-                .help("Recursively copy directories. Turned on by default"),
-        )
-        .arg(
-            Arg::with_name("no-clobber")
-            .short("n")
-            .conflicts_with("interactive")
-            .long("no-clobber")
-            .help("Overwrite any existing files or folders in the destination without confirmation")
-        )
-        .arg(
-            Arg::with_name("interactive")
-            .short("i")
-            .long("interactive")
-            .help("Confirm before overwriting any existing files or folders in the destination")
-        )
-        .arg(
-            Arg::with_name("verbose")
-            .short("v")
-            .long("verbose")
-            .help("Show verbose output")
-        )
-        .subcommand(
-            SubCommand::with_name("completion")
-            .arg(
-                Arg::with_name("shell")
-                .help("Generate completions for this SHELL")
-                .takes_value(true)
-                .short("s")
-                .long("shell")
-                .value_name("SHELL")
-                .required(true)
-                .possible_values(&["bash", "fish", "zsh", "elvish", "powershell"])
-            )
-            .arg(
-                Arg::with_name("output")
-                .help("Location to dump the output. If the flag is omitted, the result will be printed to stdout")
-                .short("o")
-                .long("output")
-                .takes_value(true)
-                .value_name("OUTPUT")
-            )
-        )
-        .arg(
-            Arg::with_name("move")
-                .long("move")
-                .short("m")
-                .help("Move source to destination rather than copying them"),
-        )
-        .arg(
-            Arg::with_name("follow-cli-symlinks")
-                .short("H")
-                .help("Follow symbolic links directly passed in command line")
-        )
-        .arg(
-            Arg::with_name("follow-source-symlinks")
-                .short("L")
-                .long("dereference")
-                .help("Follow symbolic links in sources")
-        )
-        .arg(
-            Arg::with_name("target-directory")
-                .short("t")
-                .long("target-directory")
-                .help("Copy the sources into the this directory")
-                .takes_value(true)
-                .require_equals(true)
-                .value_name("DEST")
-        )
-        .arg(
-            Arg::with_name("no-target-directory")
-            .short("T")
-            .long("no-target-directory")
-            .help("Treat destination as a regular file")
-        )
-        .arg(
-            Arg::with_name("hard-link")
-            .short("l")
-            .long("link")
-            .help("Make hard links instead of copying")
-            .conflicts_with("symbolic-links")
-        )
-        .arg(
-            Arg::with_name("symbolic-link")
-            .short("s")
-            .long("symbolic-link")
-            .help("Make symbolic links instead of copying")
-        )
-        .arg(
-            Arg::with_name("paths")
-            .takes_value(true)
-            .value_name("PATHS")
-            .multiple(true)
-            .help("The paths that needs to be copied. The last argument is taken as the destination unless -t is given")
-        )
+/// Copy source to destination
+#[derive(Clap)]
+#[clap(version = crate_version!(), author = crate_authors!() )]
+pub struct Cli {
+    /// Use this directory instead of DEST
+    #[clap(value_name = "DIR", short, long)]
+    pub target_directory: Option<PathBuf>,
+    /// Treat the destination as a regular file
+    #[clap(short = 'T', long, conflicts_with = "target-directory")]
+    pub no_target_directory: bool,
+    /// Recursively copy all directories. Turned on by default
+    #[clap(short, long)]
+    pub recrusive: bool,
+    /// Overwrite any existing files or folders in the destination without confirmation
+    #[clap(short, long, conflicts_with = "interactive")]
+    pub no_clobber: bool,
+    /// Confirm before overwriting any existing files or folders in the destination
+    #[clap(short, long)]
+    pub interactive: bool,
+    /// Show verbose output
+    #[clap(short, long)]
+    pub verbose: bool,
+    #[clap(subcommand)]
+    pub subcmd: Option<SubCommand>,
+    /// Move the files instead of copying them. This option is hard deprecated and it's usage is strongly discouraged
+    #[clap(short, long)]
+    pub r#move: bool,
+    /// Follow symbolic links given in the command line. It is turned on by default
+    #[clap(short = 'H')]
+    pub follow_cli_links: bool,
+    /// Follow symbolic links in sources. It is turned on by default
+    #[clap(short = 'L', long = "dereference")]
+    pub follow_source_links: bool,
+    /// Make symbolic links instead of copying
+    #[clap(short, long)]
+    pub symbolic_links: bool,
+    /// Make symbolic links instead of copying
+    #[clap(short = 'l', long = "link")]
+    pub hard_link: bool,
+    /// The paths that need to be copied. The last argument is considered as the destination unless -t is given
+    #[clap(value_name = "PATHS")]
+    pub paths: Vec<PathBuf>,
+}
+#[derive(Clap)]
+pub enum SubCommand {
+    // #[clap(version = crate_version!())]
+    Completion(Completion),
+}
+/// Generate completions for a shell
+#[derive(Clap)]
+pub struct Completion {
+    /// Generate completions for this SHELL
+    #[clap(short, long, value_name = "SHELL", possible_values = &["bash", "fish", "zsh", "elvish", "powershell"])]
+    pub shell: String,
+    /// Write completion to this file, if this option is omitted, take stdout into account
+    #[clap(short, long, value_name = "OUTPUT")]
+    pub output: Option<String>,
 }
