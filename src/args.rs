@@ -1,5 +1,5 @@
-use clap::{Clap, crate_version, crate_authors};
 use async_std::path::PathBuf;
+use clap::{crate_authors, crate_version, Clap};
 
 #[derive(Clone)]
 pub struct Flags {
@@ -9,20 +9,20 @@ pub struct Flags {
 }
 
 impl Flags {
-    pub fn set(matches: &clap::ArgMatches) -> Flags {
+    pub fn set(matches: &Cli) -> Flags {
         let mut default = Flags {
             copy: true,
             verbose: false,
             interactive: false,
         };
 
-        if matches.is_present("verbose") {
+        if matches.verbose {
             default.verbose = true;
         }
-        if matches.is_present("move") {
+        if matches.r#move {
             default.copy = false;
         }
-        if matches.is_present("interactive") {
+        if matches.interactive {
             default.interactive = true;
         }
         default
@@ -70,7 +70,7 @@ pub struct Cli {
     pub hard_link: bool,
     /// The paths that need to be copied. The last argument is considered as the destination unless -t is given
     #[clap(value_name = "PATHS")]
-    pub paths: Option<Vec<PathBuf>>,
+    pub paths: Vec<PathBuf>,
 }
 #[derive(Clap)]
 pub enum SubCommand {
@@ -85,5 +85,5 @@ pub struct Completion {
     pub shell: String,
     /// Write completion to this file, if this option is omitted, take stdout into account
     #[clap(short, long, value_name = "OUTPUT")]
-    pub output: Option<String>
+    pub output: Option<String>,
 }
